@@ -11,8 +11,6 @@ func TestFuncs(t *testing.T) {
 	if err != nil {
 		t.Fatal("Failed to create funcs:", err)
 	}
-	funcNames := []string{"Foo", "FooErr", "Bar", "BarErr", "Baz", "BazErr",
-		"Fun", "FunErr"}
 	if len(f) != len(funcNames) {
 		t.Fatalf("Expected funcs to be of length %d, instead got %d.", len(funcNames), len(f))
 	}
@@ -83,6 +81,9 @@ func (t testType) Fun(th *thing) (string, error) {
 func (t testType) FunErr(th *thing) (string, error) {
 	return "", fmt.Errorf("Fun error")
 }
+
+var funcNames = []string{"Foo", "FooErr", "Bar", "BarErr", "Baz", "BazErr",
+	"Fun", "FunErr"}
 
 // ----- TESTS -----------------------------------------------------------------
 

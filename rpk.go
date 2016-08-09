@@ -120,9 +120,20 @@ func HandlerFuncFor(a interface{}) (http.HandlerFunc, error) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		// TODO(amit): Verify that request is POST.
+		defer r.Body.Close()
+		funcName := r.FormValue("func")
+
+		// Special value - "funcs" - returns the names of registered functions.
+		if funcName == "funcs" {
+			names := make([]string, 0, len(f))
+			for name := range f {
+				names = append(names, name)
+			}
+			json.NewEncoder(w).Encode(names)
+			return
+		}
 
 		// Read parameter from body.
-		defer r.Body.Close()
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			w.Write([]byte(jsonError("Error while reading request body: %v", err)))
@@ -130,7 +141,6 @@ func HandlerFuncFor(a interface{}) (http.HandlerFunc, error) {
 		}
 		param := string(body)
 
-		funcName := r.FormValue("func")
 		result := f.call(funcName, param)
 		w.Write([]byte(result))
 	}, nil
