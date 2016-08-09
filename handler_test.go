@@ -15,11 +15,14 @@ func TestHandler(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		req, err := http.NewRequest("POST", "", strings.NewReader(test.arg))
+		req, err := http.NewRequest("POST", "", nil)
 		if err != nil {
 			t.Fatal("Failed to create HTTP request:", err)
 		}
-		req.PostForm = map[string][]string{"func": {test.f}}
+		req.PostForm = map[string][]string{
+			"func":  {test.f},
+			"param": {test.arg},
+		}
 		res := &mockResponseWriter{bytes.NewBuffer(nil)}
 
 		handler(res, req)

@@ -3,7 +3,6 @@ package rpk
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"reflect"
 )
@@ -110,8 +109,8 @@ func jsonError(s string, a ...interface{}) string {
 }
 
 // Returns a handler function that calls a's methods upon getting POST requests.
-// A request to the handler needs to have a parameter "func=FunctionName" and a JSON
-// encoded function argument in the body.
+// The "Content-Type" header field should read "application/x-www-form-urlencoded".
+// The content should be "func=FunctionName&param=JsonEncodedParam".
 func HandlerFuncFor(a interface{}) (http.HandlerFunc, error) {
 	f, err := newFuncs(a)
 	if err != nil {
@@ -120,7 +119,6 @@ func HandlerFuncFor(a interface{}) (http.HandlerFunc, error) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		// TODO(amit): Verify that request is POST.
-		defer r.Body.Close()
 		funcName := r.FormValue("func")
 
 		// Special value - "funcs" - returns the names of registered functions.
@@ -133,14 +131,7 @@ func HandlerFuncFor(a interface{}) (http.HandlerFunc, error) {
 			return
 		}
 
-		// Read parameter from body.
-		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			w.Write([]byte(jsonError("Error while reading request body: %v", err)))
-			return
-		}
-		param := string(body)
-
+		param := r.FormValue("param")
 		result := f.call(funcName, param)
 		w.Write([]byte(result))
 	}, nil
