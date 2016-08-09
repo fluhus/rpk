@@ -22,27 +22,6 @@ func TestFuncs(t *testing.T) {
 		}
 	}
 
-	tests := []struct {
-		f         string
-		arg       string
-		result    string
-		shouldErr bool
-	}{
-		{"Foo", "", "\"Foo!\"", false},
-		{"Foo", "1", "", true},
-		{"FooErr", "", "", true},
-		{"Bar", "7", "\"Bar 7\"", false},
-		{"Bar", "", "", true},
-		{"BarErr", "7", "", true},
-		{"Baz", "[\"x\",\"y\"]", "\"Baz x\"", false},
-		{"Baz", "", "", true},
-		{"BazErr", "[\"x\",\"y\"]", "", true},
-		{"Fun", "{\"i\":7,\"s\":\"aaa\"}", "\"Fun 7 aaa\"", false},
-		{"Fun", "{\"i\":7,\"s\":\"aaa\"{", "", true},
-		{"Fun", "", "", true},
-		{"FunErr", "{\"i\":7,\"s\":\"aaa\"}", "", true},
-	}
-
 	for _, test := range tests {
 		result := f.call(test.f, test.arg)
 		if test.shouldErr && !isJsonError(result) {
@@ -103,4 +82,27 @@ func (t testType) Fun(th *thing) (string, error) {
 
 func (t testType) FunErr(th *thing) (string, error) {
 	return "", fmt.Errorf("Fun error")
+}
+
+// ----- TESTS -----------------------------------------------------------------
+
+var tests = []struct {
+	f         string
+	arg       string
+	result    string
+	shouldErr bool
+}{
+	{"Foo", "", "\"Foo!\"", false},
+	{"Foo", "1", "", true},
+	{"FooErr", "", "", true},
+	{"Bar", "7", "\"Bar 7\"", false},
+	{"Bar", "", "", true},
+	{"BarErr", "7", "", true},
+	{"Baz", "[\"x\",\"y\"]", "\"Baz x\"", false},
+	{"Baz", "", "", true},
+	{"BazErr", "[\"x\",\"y\"]", "", true},
+	{"Fun", "{\"i\":7,\"s\":\"aaa\"}", "\"Fun 7 aaa\"", false},
+	{"Fun", "{\"i\":7,\"s\":\"aaa\"{", "", true},
+	{"Fun", "", "", true},
+	{"FunErr", "{\"i\":7,\"s\":\"aaa\"}", "", true},
 }

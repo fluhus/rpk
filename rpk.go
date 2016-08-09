@@ -30,6 +30,7 @@ func newFuncs(a interface{}) (funcs, error) {
 		method := value.Method(i)
 		name := reflect.TypeOf(a).Method(i).Name
 		typ := method.Type()
+		// TODO(amit): Check that function is exported.
 
 		// Must have at most 1 input argument.
 		if typ.NumIn() > 1 {
@@ -119,7 +120,7 @@ func HandlerFuncFor(a interface{}) (http.HandlerFunc, error) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		// TODO(amit): Verify that request is POST.
-		
+
 		// Read parameter from body.
 		defer r.Body.Close()
 		body, err := ioutil.ReadAll(r.Body)
