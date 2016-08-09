@@ -8,8 +8,19 @@ import (
 	"reflect"
 )
 
+// TODO(amit): Organize documentation.
+
+// Represents a set of callable functions, that communicates in JSON.
+// Maps from function name to the reflection of that function.
 type funcs map[string]reflect.Value
 
+// Creates a funcs instance from the methods of the given interface.
+//
+// All methods must:
+// (1) Be exported.
+// (2) Have at most 1 input argument, which should be JSON encodable.
+// (3) Have 2 output arguments, the first is JSON-encodable and the second is an
+// error.
 func newFuncs(a interface{}) (funcs, error) {
 	result := funcs{}
 	value := reflect.ValueOf(a)
@@ -24,11 +35,6 @@ func newFuncs(a interface{}) (funcs, error) {
 		if typ.NumIn() > 1 {
 			return nil, fmt.Errorf("Function '%s' must have 0 or 1 inputs. It has %d. %v %v",
 				name, typ.NumIn(), typ.In(0), typ.In(1))
-		}
-
-		// Argument must be a pointer.
-		if typ.NumIn() == 1 && typ.In(0).Kind() != reflect.Ptr {
-			return nil, fmt.Errorf("Argument of '%s' must be a pointer.", name)
 		}
 
 		// Must have 2 outputs, the second one is an error.
@@ -65,15 +71,15 @@ func (fs funcs) call(funcName string, param string) string {
 	// If function has an input argument.
 	if fType.NumIn() == 1 {
 		// Extract input parameter.
-		inType := fType.In(0).Elem()
+		inType := fType.In(0)
 		in := reflect.New(inType)
 		err := json.Unmarshal([]byte(param), in.Interface())
 		if err != nil {
-			return jsonError("Input does not match argument type.")
+			return jsonError("Error encoding JSON: %v", err)
 		}
 
 		// Call method.
-		out = f.Call([]reflect.Value{in})
+		out = f.Call([]reflect.Value{in.Elem()})
 
 	} else {
 		// Argument not expected.
@@ -95,6 +101,13 @@ func (fs funcs) call(funcName string, param string) string {
 	return string(result)
 }
 
+// Generates a JSON string with an error field, which evaluates to the given
+// format.
+func jsonError(s string, a ...interface{}) string {
+	result, _ := json.Marshal(map[string]string{"error": fmt.Sprintf(s, a...)})
+	return string(result)
+}
+
 // Returns a handler function that calls a's methods upon getting POST requests.
 // A request to the handler needs to have a parameter "func=FunctionName" and a JSON
 // encoded function argument in the body.
@@ -105,6 +118,8 @@ func HandlerFuncFor(a interface{}) (http.HandlerFunc, error) {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		// TODO(amit): Verify that request is POST.
+		
 		// Read parameter from body.
 		defer r.Body.Close()
 		body, err := ioutil.ReadAll(r.Body)
@@ -118,11 +133,4 @@ func HandlerFuncFor(a interface{}) (http.HandlerFunc, error) {
 		result := f.call(funcName, param)
 		w.Write([]byte(result))
 	}, nil
-}
-
-// Generates a JSON string with an error field, which evaluates to the given
-// format.
-func jsonError(s string, a ...interface{}) string {
-	result, _ := json.Marshal(map[string]string{"error": fmt.Sprintf(s, a...)})
-	return string(result)
 }
