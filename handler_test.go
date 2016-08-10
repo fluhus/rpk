@@ -93,6 +93,6 @@ func (m *mockResponseWriter) Write(b []byte) (int, error) {
 	return m.buf.Write(b)
 }
 func (m *mockResponseWriter) Header() http.Header {
-	return nil
+	return map[string][]string{}
 }
 func (m *mockResponseWriter) WriteHeader(i int) {}
