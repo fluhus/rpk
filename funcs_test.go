@@ -50,12 +50,14 @@ type thing struct {
 	S string
 }
 
-func (t testType) Foo() (string, error) {
-	return "Foo!", nil
+func (t testType) Foo() {}
+
+func (t testType) FooStr() string {
+	return "Foo!"
 }
 
-func (t testType) FooErr() (string, error) {
-	return "", fmt.Errorf("Foo error")
+func (t testType) FooErr() error {
+	return fmt.Errorf("Foo error")
 }
 
 func (t testType) Bar(i int) (string, error) {
@@ -82,7 +84,7 @@ func (t testType) FunErr(th *thing) (string, error) {
 	return "", fmt.Errorf("Fun error")
 }
 
-var funcNames = []string{"Foo", "FooErr", "Bar", "BarErr", "Baz", "BazErr",
+var funcNames = []string{"Foo", "FooStr", "FooErr", "Bar", "BarErr", "Baz", "BazErr",
 	"Fun", "FunErr"}
 
 // ----- TESTS -----------------------------------------------------------------
@@ -93,8 +95,10 @@ var tests = []struct {
 	result    string
 	shouldErr bool
 }{
-	{"Foo", "", "\"Foo!\"", false},
-	{"Foo", "1", "", true},
+	{"Foo", "", "", false},
+	{"Foo", "a", "", true},
+	{"FooStr", "", "\"Foo!\"", false},
+	{"FooStr", "1", "", true},
 	{"FooErr", "", "", true},
 	{"Bar", "7", "\"Bar 7\"", false},
 	{"Bar", "", "", true},

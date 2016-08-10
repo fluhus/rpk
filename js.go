@@ -1,7 +1,6 @@
 package rpk
 
-var jsCode =
-`function rpk(url) {
+var jsCode = `function rpk(url) {
 	var result = {
 		ready : false
 	};
