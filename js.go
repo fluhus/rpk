@@ -27,10 +27,18 @@ var jsCode = `function rpk(url) {
 					callOrThrow(errorCallback, response.error);
 					return;
 				}
-				callback(response);
+				
+				if (callback) {
+					callback(response);
+				}
 			}
 		};
-		xhr.open("POST", url+"?func=" + name + "&param=" + encodeURI(JSON.stringify(param)), true);
+		if (typeof param == "undefined") {
+			param = "";
+		} else {
+			param = encodeURI(JSON.stringify(param));
+		}
+		xhr.open("POST", url+"?func=" + name + "&param=" + param, true);
 		xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 		xhr.send();
 	};
@@ -38,6 +46,19 @@ var jsCode = `function rpk(url) {
 	// Returns a function that calls a specific RPK function.
 	var rpkCaller = function(name) {
 		return function(param, callback, errorCallback) {
+			if (arguments.length == 2) {
+				if (typeof param == "function") {
+					errorCallback = callback;
+					callback = param;
+					param = undefined;
+				}
+			}
+			if (arguments.length == 1) {
+				if (typeof param == "function") {
+					callback = param;
+					param = undefined;
+				}
+			}
 			callRpk(name, param, callback, errorCallback);
 		};
 	};

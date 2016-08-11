@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"strings"
 )
 
 // TODO(amit): Organize documentation.
+// TODO(amit): Test with bad types.
 
 // Represents a set of callable functions, that communicates in JSON.
 // Maps from function name to the reflection of that function.
@@ -30,9 +32,11 @@ func newFuncs(a interface{}) (funcs, error) {
 		method := value.Method(i)
 		name := reflect.TypeOf(a).Method(i).Name
 		typ := method.Type()
-		// TODO(amit): Check that function is exported.
 
 		// Check that function matches the requirements.
+		if name[:1] == strings.ToLower(name[:1]) {
+			return nil, fmt.Errorf("Function '%s' is not exported.", name)
+		}
 		if err := checkInputs(typ); err != nil {
 			return nil, fmt.Errorf("Function '%s': %v", name, err)
 		}
