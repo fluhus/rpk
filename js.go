@@ -1,5 +1,8 @@
 package rpk
 
+// TODO(amit): Add onReady function.
+// TODO(amit): Document client code.
+
 var jsCode = `function rpk(url) {
 	var result = {
 		ready : false
@@ -66,7 +69,6 @@ var jsCode = `function rpk(url) {
 	// Prepare RPK functions for result.
 	callRpk("funcs", "", function(funcs) {
 		for (var i = 0; i < funcs.length; i++) {
-			// TODO(amit): Lowercase first letter.
 			result[funcs[i]] = rpkCaller(funcs[i]);
 		}
 		result.ready = true;
