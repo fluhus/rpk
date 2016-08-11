@@ -1,3 +1,13 @@
+// Simple RPC between Javascript and Go.
+// The package converts objects to RPC handlers that call their methods.
+//
+// Restrictions on RPC methods
+//
+// The methods of an RPC object must all:
+// (1) be exported
+// (2) have at most 1 input argument, which should be JSON encodable
+// (3) have at most 2 outputs: 1 optional value of any JSON encodable type, and an optional
+// error. If using 2 outputs, the error should come second.
 package rpk
 
 import (
@@ -8,20 +18,16 @@ import (
 	"strings"
 )
 
-// TODO(amit): Organize documentation.
+// TODO(amit): Add examples.
 // TODO(amit): Test with bad types.
+// TODO(amit): Consider a better name for HandleJs.
 
 // Represents a set of callable functions, that communicates in JSON.
 // Maps from function name to the reflection of that function.
 type funcs map[string]reflect.Value
 
 // Creates a funcs instance from the methods of the given interface.
-//
-// All methods must:
-// (1) Be exported.
-// (2) Have at most 1 input argument, which should be JSON encodable.
-// (3) Have 2 output arguments, the first is JSON-encodable and the second is an
-// error.
+// Returns an error if a method does not match the requirements (see package description).
 func newFuncs(a interface{}) (funcs, error) {
 	result := funcs{}
 	value := reflect.ValueOf(a)
@@ -146,10 +152,12 @@ func jsonError(s string, a ...interface{}) string {
 	return string(result)
 }
 
-// Returns a handler function that calls a's methods upon getting POST requests.
-// The "Content-Type" header field should read "application/x-www-form-urlencoded".
-// The content should be "func=FunctionName&param=JsonEncodedParam".
+// Returns a handler function that calls a's methods. Access this handler using
+// the Javascript code served by HandleJs. Returns an error if a's methods do not match
+// the requirements - see package description.
 func HandlerFuncFor(a interface{}) (http.HandlerFunc, error) {
+	// The "Content-Type" header field should read "application/x-www-form-urlencoded".
+	// The content should be "func=FunctionName&param=JsonEncodedParam".
 	f, err := newFuncs(a)
 	if err != nil {
 		return nil, err
@@ -175,8 +183,6 @@ func HandlerFuncFor(a interface{}) (http.HandlerFunc, error) {
 		w.Write([]byte(result))
 	}, nil
 }
-
-// TODO(amit): Consider a better name for HandleJs.
 
 // An http.HandlerFunc for fetching the Javascript client code.
 func HandleJs(w http.ResponseWriter, r *http.Request) {
