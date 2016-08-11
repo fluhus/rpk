@@ -9,7 +9,7 @@ import (
 )
 
 func TestHandler(t *testing.T) {
-	handler, err := HandlerFuncFor(testType{})
+	handler, err := NewHandlerFunc(testType{})
 	if err != nil {
 		t.Fatal("Failed to create handler:", err)
 	}
@@ -41,7 +41,7 @@ func TestHandler(t *testing.T) {
 }
 
 func TestHandler_funcs(t *testing.T) {
-	handler, err := HandlerFuncFor(testType{})
+	handler, err := NewHandlerFunc(testType{})
 	if err != nil {
 		t.Fatal("Failed to create handler:", err)
 	}

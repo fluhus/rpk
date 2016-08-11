@@ -22,7 +22,7 @@
 //
 //  func main() {
 //    http.HandleFunc("/api/client.js", rpk.HandleJs)  // Serves client code.
-//    handler, _ := rpk.HandlerFuncFor(myAPI{})
+//    handler, _ := rpk.NewHandlerFunc(myAPI{})
 //    http.HandleFunc("/api", handler)
 //    http.ListenAndServe(":8080", nil)
 //  }
@@ -189,7 +189,7 @@ func jsonError(s string, a ...interface{}) string {
 // Returns a handler function that calls a's exported methods. Access this handler using
 // the Javascript code served by HandleJs. Returns an error if a's methods do not match
 // the requirements - see package description.
-func HandlerFuncFor(a interface{}) (http.HandlerFunc, error) {
+func NewHandlerFunc(a interface{}) (http.HandlerFunc, error) {
 	// The "Content-Type" header field should read "application/x-www-form-urlencoded".
 	// The content should be "func=FunctionName&param=JsonEncodedParam".
 	f, err := newFuncs(a)
