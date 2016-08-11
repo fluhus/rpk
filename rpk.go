@@ -1,13 +1,46 @@
 // Simple RPC between Javascript and Go.
-// The package converts objects to RPC handlers that call their methods.
+// The package converts objects to RPC handlers that call their exported methods.
 //
 // Restrictions on RPC methods
 //
-// The methods of an RPC object must all:
-// (1) be exported
-// (2) have at most 1 input argument, which should be JSON encodable
-// (3) have at most 2 outputs: 1 optional value of any JSON encodable type, and an optional
+// The methods of an RPC object must:
+// (1) have at most 1 input argument, which should be JSON encodable
+// (2) have at most 2 outputs: 1 optional value of any JSON encodable type, and an optional
 // error. If using 2 outputs, the error should come second.
+//
+// Unexported methods are ignored and do not have any restriction.
+//
+// Server code example
+//
+// The server defines the exported RPC interface through the methods of a type.
+//
+//  type myAPI struct{}
+//
+//  func (m myAPI) Half(i int) int {
+//    return i / 2
+//  }
+//
+//  func main() {
+//    http.HandleFunc("/api/client.js", rpk.HandleJs)  // Serves client code.
+//    handler, _ := rpk.HandlerFuncFor(myAPI{})
+//    http.HandleFunc("/api", handler)
+//    http.ListenAndServe(":8080", nil)
+//  }
+//
+// Client code example
+//
+// The client needs to fetch the complementary Javascript code.
+//
+//  <script type="text/javascript" src="/api/client.js"></script>
+//  <script type="text/javascript">
+//
+//  api = rpk("/api")
+//  ... (wait for api.ready) ...
+//  api.Half(10, function(result) {  // result is an int.
+//    console.log("result=" + result);
+//  });
+//
+//  </script>
 package rpk
 
 import (
@@ -18,7 +51,6 @@ import (
 	"strings"
 )
 
-// TODO(amit): Add examples.
 // TODO(amit): Test with bad types.
 // TODO(amit): Consider a better name for HandleJs.
 
@@ -39,10 +71,12 @@ func newFuncs(a interface{}) (funcs, error) {
 		name := reflect.TypeOf(a).Method(i).Name
 		typ := method.Type()
 
-		// Check that function matches the requirements.
+		// Check if exported.
 		if name[:1] == strings.ToLower(name[:1]) {
-			return nil, fmt.Errorf("Function '%s' is not exported.", name)
+			continue
 		}
+
+		// Check that function matches the requirements.
 		if err := checkInputs(typ); err != nil {
 			return nil, fmt.Errorf("Function '%s': %v", name, err)
 		}
@@ -152,7 +186,7 @@ func jsonError(s string, a ...interface{}) string {
 	return string(result)
 }
 
-// Returns a handler function that calls a's methods. Access this handler using
+// Returns a handler function that calls a's exported methods. Access this handler using
 // the Javascript code served by HandleJs. Returns an error if a's methods do not match
 // the requirements - see package description.
 func HandlerFuncFor(a interface{}) (http.HandlerFunc, error) {
@@ -184,7 +218,7 @@ func HandlerFuncFor(a interface{}) (http.HandlerFunc, error) {
 	}, nil
 }
 
-// An http.HandlerFunc for fetching the Javascript client code.
+// An http.HandlerFunc for serving the Javascript client code.
 func HandleJs(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/javascript")
 	w.Write([]byte(jsCode))
