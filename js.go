@@ -27,7 +27,12 @@ var jsCode = `function rpk(url) {
 					callOrThrow(callback, null, "Got bad response status code: " + xhr.status);
 					return;
 				}
-				var response = JSON.parse(xhr.responseText);
+				try {
+					var response = JSON.parse(xhr.responseText);
+				} catch (error) {
+					callOrThrow(callback, null, "Error parsing response: " + error);
+					return;
+				}
 				if (response.error) {
 					callOrThrow(callback, null, response.error);
 					return;
@@ -59,9 +64,10 @@ var jsCode = `function rpk(url) {
 			callRpk(name, param, callback);
 		};
 	};
-	
+
 	// Prepare RPK functions for result.
 	var initError = null;
+	var initCallbacks = [];
 	callRpk("funcs", "", function(funcs, error) {
 		if (error) {
 			initError = error;
@@ -71,8 +77,19 @@ var jsCode = `function rpk(url) {
 			}
 			result.ready = true;
 		}
+		for (var i = 0; i < initCallbacks.length; i++) {
+			initCallbacks[i](initError);
+		}
 	});
-	
+
+	result.onReady = function(callback) {
+		if (result.ready || initError) {
+			callback(initError);
+			return;
+		}
+		initCallbacks.push(callback);
+	};
+
 	return result;
 }
 `

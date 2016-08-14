@@ -35,7 +35,9 @@
 //  <script type="text/javascript">
 //
 //  api = rpk("/api")
-//  ... (wait for api.ready) ...
+//  api.onReady(function(error) {...});
+//
+//  // ... After ready ...
 //  api.Half(10, function(result, error) {
 //    if (error) {
 //      console.error("error=" + error);
