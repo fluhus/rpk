@@ -36,9 +36,15 @@
 //
 //  api = rpk("/api")
 //  ... (wait for api.ready) ...
-//  api.Half(10, function(result) {  // result is an int.
-//    console.log("result=" + result);
-//  });
+//  api.Half(
+//      10,                 // RPC function input.
+//      function(result) {  // Success callback.
+//        console.log("Success! Got result: " + result);
+//      },
+//      function(error) {   // Error callback.
+//        console.error("Failed. Got error: " + error);
+//      }
+//  );
 //
 //  </script>
 package rpk

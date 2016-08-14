@@ -49,18 +49,14 @@ var jsCode = `function rpk(url) {
 	// Returns a function that calls a specific RPK function.
 	var rpkCaller = function(name) {
 		return function(param, callback, errorCallback) {
-			if (arguments.length == 2) {
-				if (typeof param == "function") {
-					errorCallback = callback;
-					callback = param;
-					param = undefined;
-				}
+			if (arguments.length != 2 && arguments.length != 3) {
+				throw "Bad number of arguments: " + arguments.length 
+					+ ", expected 2 or 3.";
 			}
-			if (arguments.length == 1) {
-				if (typeof param == "function") {
-					callback = param;
-					param = undefined;
-				}
+			if (arguments.length == 2) {
+				errorCallback = callback;
+				callback = param;
+				param = undefined;
 			}
 			callRpk(name, param, callback, errorCallback);
 		};
