@@ -36,15 +36,13 @@
 //
 //  api = rpk("/api")
 //  ... (wait for api.ready) ...
-//  api.Half(
-//      10,                 // RPC function input.
-//      function(result) {  // Success callback.
-//        console.log("Success! Got result: " + result);
-//      },
-//      function(error) {   // Error callback.
-//        console.error("Failed. Got error: " + error);
-//      }
-//  );
+//  api.Half(10, function(result, error) {
+//    if (error) {
+//      console.error("error=" + error);
+//    } else {
+//      console.log("result=" + result);
+//    }
+//  });
 //
 //  </script>
 package rpk
@@ -146,7 +144,7 @@ func (fs funcs) call(funcName string, param string) string {
 		in := reflect.New(inType)
 		err := json.Unmarshal([]byte(param), in.Interface())
 		if err != nil {
-			return jsonError("Error encoding JSON: %v", err)
+			return jsonError("Error decoding JSON: %v", err)
 		}
 
 		// Call method.

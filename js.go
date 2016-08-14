@@ -8,32 +8,31 @@ var jsCode = `function rpk(url) {
 		ready : false
 	};
 	
-	// Calls callback with the error, or throws an exception if no callback.
-	var callOrThrow = function(errorCallback, error) {
-		if (!errorCallback) {
+	// Calls callback with the parameters, or throws an exception if no callback.
+	var callOrThrow = function(callback, data, error) {
+		if (callback) {
+			callback(data, error);
+		}
+		if (!callback && error) {
 			throw error;
 		}
-		errorCallback(error);
 	}
 	
 	// Calls an RPK function.
-	var callRpk = function(name, param, callback, errorCallback) {
+	var callRpk = function(name, param, callback) {
 		var xhr = new XMLHttpRequest();
 		xhr.onreadystatechange = function() {
 			if (xhr.readyState == 4) {
 				if (xhr.status != 200) {
-					callOrThrow(errorCallback, "Got bad response status code: " + xhr.status);
+					callOrThrow(callback, null, "Got bad response status code: " + xhr.status);
 					return;
 				}
 				var response = JSON.parse(xhr.responseText);
 				if (response.error) {
-					callOrThrow(errorCallback, response.error);
+					callOrThrow(callback, null, response.error);
 					return;
 				}
-				
-				if (callback) {
-					callback(response);
-				}
+				callOrThrow(callback, response, null);
 			}
 		};
 		if (typeof param == "undefined") {
@@ -48,26 +47,30 @@ var jsCode = `function rpk(url) {
 	
 	// Returns a function that calls a specific RPK function.
 	var rpkCaller = function(name) {
-		return function(param, callback, errorCallback) {
-			if (arguments.length != 2 && arguments.length != 3) {
+		return function(param, callback) {
+			if (arguments.length != 1 && arguments.length != 2) {
 				throw "Bad number of arguments: " + arguments.length 
-					+ ", expected 2 or 3.";
+					+ ", expected 1 or 2.";
 			}
-			if (arguments.length == 2) {
-				errorCallback = callback;
+			if (arguments.length == 1) {
 				callback = param;
 				param = undefined;
 			}
-			callRpk(name, param, callback, errorCallback);
+			callRpk(name, param, callback);
 		};
 	};
 	
 	// Prepare RPK functions for result.
-	callRpk("funcs", "", function(funcs) {
-		for (var i = 0; i < funcs.length; i++) {
-			result[funcs[i]] = rpkCaller(funcs[i]);
+	var initError = null;
+	callRpk("funcs", "", function(funcs, error) {
+		if (error) {
+			initError = error;
+		} else {
+			for (var i = 0; i < funcs.length; i++) {
+				result[funcs[i]] = rpkCaller(funcs[i]);
+			}
+			result.ready = true;
 		}
-		result.ready = true;
 	});
 	
 	return result;
