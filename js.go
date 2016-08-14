@@ -1,6 +1,5 @@
 package rpk
 
-// TODO(amit): Add onReady function.
 // TODO(amit): Document client code.
 
 var jsCode = `function rpk(url) {
