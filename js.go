@@ -1,7 +1,5 @@
 package rpk
 
-// TODO(amit): Document client code.
-
 var jsCode = `function rpk(url) {
 	var result = {
 		ready : false

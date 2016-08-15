@@ -47,6 +47,29 @@
 //  });
 //
 //  </script>
+//
+// Javascript API
+//
+// The Javascript code exposes a single function.
+//  rpk([string] url)
+// Returns an RPK object, which will have the exported methods of the Go object that
+// handles that URL.
+//
+//  rpkObject.ready
+// Boolean. Indicates whether this RPK object is ready to be called.
+//
+//  rpkObject.onReady( callback(error) )
+// Adds a listener that will be called when myRpkObject finishes initializing.
+// If successful, error will be null. Else, error will be a string describing
+// the problem. Several listeners can be added. They will be called by order of
+// adding.
+//
+//  rpkObject.FuncName(param, callback(data, error))
+// Calls a Go method.
+// Param should be of the type expected by the Go method. If the Go method expects
+// no input, then param should be omitted. On success, error will be null and data
+// will contain the output (if any). On error, error will be a string describing
+// the problem.
 package rpk
 
 import (
