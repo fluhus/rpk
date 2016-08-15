@@ -42,7 +42,7 @@
 //    if (error) {
 //      console.error("error=" + error);
 //    } else {
-//      console.log("result=" + result);
+//      console.log("10/2=" + result);
 //    }
 //  });
 //
