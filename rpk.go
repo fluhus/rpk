@@ -1,15 +1,6 @@
 // Simple RPC between Javascript and Go.
 // The package converts objects to RPC handlers that call their exported methods.
 //
-// Restrictions on RPC methods
-//
-// The methods of an RPC object must:
-// (1) have at most 1 input argument, which should be JSON encodable
-// (2) have at most 2 outputs: 1 optional value of any JSON encodable type, and an optional
-// error. If using 2 outputs, the error should come second.
-//
-// Unexported methods are ignored and do not have any restriction.
-//
 // Server code example
 //
 // The server defines the exported RPC interface through the methods of a type.
@@ -47,6 +38,15 @@
 //  });
 //
 //  </script>
+//
+// Restrictions on RPC methods
+//
+// The methods of an RPC object must:
+// (1) have at most 1 input argument, which should be JSON encodable
+// (2) have at most 2 outputs: 1 optional value of any JSON encodable type, and an optional
+// error. If using 2 outputs, the error should come second.
+//
+// Unexported methods are ignored and do not have any restriction.
 //
 // Javascript API
 //
