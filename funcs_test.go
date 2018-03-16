@@ -22,10 +22,10 @@ func TestFuncs(t *testing.T) {
 
 	for _, test := range tests {
 		result := f.call(test.f, test.arg)
-		if test.shouldErr && !isJsonError(result) {
+		if test.shouldErr && !isJSONError(result) {
 			t.Fatal("Expected error but got nil in test:", test)
 		}
-		if !test.shouldErr && isJsonError(result) {
+		if !test.shouldErr && isJSONError(result) {
 			t.Fatal("Expected success but got error in test:", test, result)
 		}
 		if !test.shouldErr && result != test.result {
@@ -36,8 +36,8 @@ func TestFuncs(t *testing.T) {
 
 // ----- HELPERS --------------------------------------------------------------
 
-// Checks if the given string looks like a JSON error.
-func isJsonError(s string) bool {
+// isJSONError checks if the given string looks like a JSON error.
+func isJSONError(s string) bool {
 	return strings.HasPrefix(s, "{\"error\":")
 }
 

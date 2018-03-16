@@ -1,4 +1,4 @@
-// Simple RPC between Javascript and Go.
+// Package rpk provides simple RPC between Javascript and Go.
 // The package converts objects to RPC handlers that call their exported methods.
 //
 // Server code example
@@ -7,13 +7,13 @@
 //
 //  type myAPI struct{}
 //
-//  func (m myAPI) Half(i int) int {
+//  func (myAPI) Half(i int) int {
 //    return i / 2
 //  }
 //
 //  func main() {
-//    http.HandleFunc("/api/client.js", rpk.HandleJs)  // Serves client code.
-//    handler, _ := rpk.NewHandlerFunc(myAPI{})
+//    http.HandleFunc("/api/rpk.js", rpk.HandleJS)  // Serves client code.
+//    handler, _ := rpk.HandlerFunc(myAPI{})
 //    http.HandleFunc("/api", handler)
 //    http.ListenAndServe(":8080", nil)
 //  }
@@ -22,10 +22,10 @@
 //
 // The client needs to fetch the complementary Javascript code.
 //
-//  <script type="text/javascript" src="/api/client.js"></script>
+//  <script type="text/javascript" src="/api/rpk.js"></script>
 //  <script type="text/javascript">
 //
-//  api = rpk("/api")
+//  let api = rpk("/api")
 //  api.onReady(function(error) {...});
 //
 //  // ... After ready ...
@@ -51,7 +51,7 @@
 // Javascript API
 //
 // The Javascript code exposes a single function.
-//  rpk([string] url)
+//  rpk(/*string*/ url)
 // Returns an RPK object, which will have the exported methods of the Go object that
 // handles that URL.
 //
@@ -81,13 +81,13 @@ import (
 )
 
 // TODO(amit): Test with bad types.
-// TODO(amit): Consider a better name for HandleJs.
+// TODO(amit): Consider a better name for HandleJS.
 
-// Represents a set of callable functions, that communicates in JSON.
+// funcs represents a set of callable functions, that communicates in JSON.
 // Maps from function name to the reflection of that function.
 type funcs map[string]reflect.Value
 
-// Creates a funcs instance from the methods of the given interface.
+// newFuncs creates a funcs instance from the methods of the given interface.
 // Returns an error if a method does not match the requirements (see package description).
 func newFuncs(a interface{}) (funcs, error) {
 	result := funcs{}
@@ -120,7 +120,7 @@ func newFuncs(a interface{}) (funcs, error) {
 	return result, nil
 }
 
-// Checks if a function's input argument match the requirements of RPK.
+// checkInputs checks if a function's input argument match the requirements of RPK.
 func checkInputs(f reflect.Type) error {
 	// Must have at most 1 input argument.
 	if f.NumIn() > 1 {
@@ -130,7 +130,7 @@ func checkInputs(f reflect.Type) error {
 	return nil
 }
 
-// Checks if a function's outputs match the requirements of RPK.
+// checkOutputs checks if a function's outputs match the requirements of RPK.
 func checkOutputs(f reflect.Type) error {
 	// Must have at most 2 outputs.
 	if f.NumOut() > 2 {
@@ -138,18 +138,18 @@ func checkOutputs(f reflect.Type) error {
 	}
 	// If 2 outputs, then the second must be an error.
 	if f.NumOut() == 2 && !isError(f.Out(1)) {
-		return fmt.Errorf("Second output should be an error, but found %v.", f.Out(1))
+		return fmt.Errorf("second output should be an error, but found %v", f.Out(1))
 	}
 	return nil
 }
 
-// Checks if the given type is error.
+// isError checks if the given type is error.
 func isError(t reflect.Type) bool {
 	var perr *error
 	return t == reflect.TypeOf(perr).Elem()
 }
 
-// Calls a function with the given JSON encoded parameter.
+// call calls a function with the given JSON encoded parameter.
 // Functions with no parameters should get an empty string.
 // On error, returns a JSON object with an error field.
 func (fs funcs) call(funcName string, param string) string {
@@ -208,17 +208,17 @@ func (fs funcs) call(funcName string, param string) string {
 	return ""
 }
 
-// Generates a JSON string with an error field, which evaluates to the given
+// jsonError generates a JSON string with an error field, which evaluates to the given
 // format.
 func jsonError(s string, a ...interface{}) string {
 	result, _ := json.Marshal(map[string]string{"error": fmt.Sprintf(s, a...)})
 	return string(result)
 }
 
-// Returns a handler function that calls a's exported methods. Access this handler using
-// the Javascript code served by HandleJs. Returns an error if a's methods do not match
+// HandlerFunc returns a handler function that calls a's exported methods. Access this handler
+// using the Javascript code served by HandleJS. Returns an error if a's methods do not match
 // the requirements - see package description.
-func NewHandlerFunc(a interface{}) (http.HandlerFunc, error) {
+func HandlerFunc(a interface{}) (http.HandlerFunc, error) {
 	// The "Content-Type" header field should read "application/x-www-form-urlencoded".
 	// The content should be "func=FunctionName&param=JsonEncodedParam".
 	f, err := newFuncs(a)
@@ -247,8 +247,8 @@ func NewHandlerFunc(a interface{}) (http.HandlerFunc, error) {
 	}, nil
 }
 
-// An http.HandlerFunc for serving the Javascript client code.
-func HandleJs(w http.ResponseWriter, r *http.Request) {
+// HandleJS returns an http.HandlerFunc for serving the Javascript client code.
+func HandleJS(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/javascript")
 	w.Write([]byte(jsCode))
 }

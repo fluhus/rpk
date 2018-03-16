@@ -9,7 +9,7 @@ import (
 )
 
 func TestHandler(t *testing.T) {
-	handler, err := NewHandlerFunc(testType{})
+	handler, err := HandlerFunc(testType{})
 	if err != nil {
 		t.Fatal("Failed to create handler:", err)
 	}
@@ -28,10 +28,10 @@ func TestHandler(t *testing.T) {
 		handler(res, req)
 		result := res.buf.String()
 
-		if test.shouldErr && !isJsonError(result) {
+		if test.shouldErr && !isJSONError(result) {
 			t.Fatal("Expected error but got nil in test:", test)
 		}
-		if !test.shouldErr && isJsonError(result) {
+		if !test.shouldErr && isJSONError(result) {
 			t.Fatal("Expected success but got error in test:", test, result)
 		}
 		if !test.shouldErr && result != test.result {
@@ -41,7 +41,7 @@ func TestHandler(t *testing.T) {
 }
 
 func TestHandler_funcs(t *testing.T) {
-	handler, err := NewHandlerFunc(testType{})
+	handler, err := HandlerFunc(testType{})
 	if err != nil {
 		t.Fatal("Failed to create handler:", err)
 	}
@@ -54,10 +54,10 @@ func TestHandler_funcs(t *testing.T) {
 	res := &mockResponseWriter{bytes.NewBuffer(nil)}
 
 	handler(res, req)
-	resultJson := res.buf.String()
+	resultJSON := res.buf.String()
 
 	var result []string
-	err = json.Unmarshal([]byte(resultJson), &result)
+	err = json.Unmarshal([]byte(resultJSON), &result)
 	if err != nil {
 		t.Fatal("Failed to parse JSON response:", err)
 	}
